@@ -11,5 +11,9 @@
             "email": "chimnhokhonglo@gmail.com"
         }
     ],
-    "require": {}
+    "require": {
+        "laravel/breeze": "^1.19",
+        "laravel/socialite": "^5.16",
+        "socialiteproviders/telegram": "^4.1"
+    }
 }

@@ -1,0 +1,15 @@
+{
+    "name": "hoangnh283/loginapi",
+    "autoload": {
+        "psr-4": {
+            "Hoangnh283\\Loginapi\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "HoangNH283",
+            "email": "chimnhokhonglo@gmail.com"
+        }
+    ],
+    "require": {}
+}

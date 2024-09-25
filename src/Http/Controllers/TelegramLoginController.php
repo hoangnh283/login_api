@@ -71,7 +71,7 @@ class TelegramLoginController extends Controller
                     'password' => Hash::make($request->password),
                     'telegram_id' => $request->telegram_id,
                 ]);
-                $telegramUser->delete();
+                // $telegramUser->delete();
             } catch (\Exception $e) {
                 return response()->json(['error' => 'User creation error'], 404);
             }

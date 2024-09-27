@@ -10,7 +10,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use Hoangnh283\Loginapi\Models\TelegramUser;
-// use Hoangnh283\Loginapi\Models\User;
+use Hoangnh283\Loginapi\Models\User as UserPackage;
 class TelegramLoginController extends Controller
 {
     public function handleTelegramCallback(Request $request) {
@@ -31,17 +31,28 @@ class TelegramLoginController extends Controller
                     //     'telegram_photo_url' => $telegramUser->avatar,
                     // ]);
                     // Auth::login($newUser);
-                    TelegramUser::create([
-                        'telegram_id' => $telegramUser->id,
-                    ]);
+                    $existingUser = TelegramUser::where('telegram_id', $telegramUser->id)->first();
+                    if(!$existingUser){
+                        try{
+                            TelegramUser::create([
+                                'telegram_id' => $telegramUser->id,
+                            ]);
+                        }catch (\Exception $e) {
+                            return response()->json(['error' => $e->getMessage()], 404);
+                        }
+                    }
                 }
             }
             return response()->json(['telegramUser' => $telegramUser, 'isRegistered'=>$isRegistered ]);
         }
     
     public function handleTelegramCallbackConnective(Request $request) {
+        // $allParams = $request->all();
+        // $customParam = $allParams['test'] ?? null;
+        // unset($allParams['test']);
+
         $telegramUser = \Laravel\Socialite\Facades\Socialite::driver('telegram')->user();
-        
+
         if($telegramUser){
             $user = Auth::user();
             if ($user) {
@@ -56,20 +67,31 @@ class TelegramLoginController extends Controller
 
     public function handleTelegramCreateUser(Request $request)
     {
+
+        // var_dump(User::where('email', $request->email)->exists());die;
+
         if (User::where('email', $request->email)->exists()) {
-            throw ValidationException::withMessages([
-                'email' => 'The email has already been taken.',
-            ]);
+            // throw ValidationException::withMessages([
+            //     'email' => 'The email has already been taken.',
+            // ]);
+            return response()->json(['error' => 'The email has already been taken'],400);
         }
+
+        $validatedData = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email|max:255',
+            'password' => 'required|string|min:8', 
+            'telegram_id' => 'required|string', 
+        ]);
         $existingUser = User::where('telegram_id', $request->telegram_id)->first();
         $telegramUser = TelegramUser::where('telegram_id', $request->telegram_id)->first();
         if ($telegramUser && !$existingUser) {
             try{
-                $newUser = User::create([
-                    'name' => $request->name,
-                    'email' => $request->email,
-                    'password' => Hash::make($request->password),
-                    'telegram_id' => $request->telegram_id,
+                $newUser = UserPackage::create([
+                    'name' => $validatedData['name'],
+                    'email' => $validatedData['email'],
+                    'password' => Hash::make($validatedData['password']),
+                    'telegram_id' => $validatedData['telegram_id'],
                 ]);
                 // $telegramUser->delete();
             } catch (\Exception $e) {
